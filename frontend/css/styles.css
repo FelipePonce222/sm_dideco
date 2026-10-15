@@ -12,7 +12,7 @@ body {
 
 /* NAVBAR */
 .navbar {
-    background-color: #3d9735;
+    background-color: #468728;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -126,3 +126,15 @@ th {
 .estado-sin-comenzar { background: #ffeaa7; color: #d63031; }
 .estado-completada { background: #55efc4; color: #00b894; }
 .estado-en-desarrollo { background: #74b9ff; color: #0984e3; }
+
+/* EFECTOS DEL MENÚ LATERAL */
+.hover-menu:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease-in-out;
+}
+
+.offcanvas-body .nav-link {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
