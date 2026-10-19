@@ -122,3 +122,9 @@ INSERT OR IGNORE INTO tipo_marca (id_tipo_marca, nombre_marca) VALUES
 INSERT OR IGNORE INTO subdireccion (id_subdireccion, nombre_subdireccion) VALUES (1, 'Subdirección Social DIDECO');
 INSERT OR IGNORE INTO departamento (id_departamento, nombre_departamento, fk_subdireccion) VALUES (1, 'Departamento de Gestión Social', 1);
 INSERT OR IGNORE INTO unidad (id_unidad, nombre_unidad, fk_departamento) VALUES (1, 'Unidad de Asistencia y Terreno', 1);
+
+-- FUNCIONARIOS DE PRUEBA (con clave de prueba "123456")
+INSERT OR IGNORE INTO funcionario (id_funcionario, rut, nombre, appaterno, apmaterno, correo, password_hash, fk_unidad, fk_contrato, fk_rol) VALUES 
+(1, '12345678-9', 'Juan', 'Perez', 'Soto', 'juan.perez@lagranja.cl', '123456', 1, 1, 3),
+(2, '98765432-1', 'Dayanna', 'Retamal', 'Lopez', 'dayanna.retamal@lagranja.cl', '123456', 2, 2, 3),
+(3, '11223344-5', 'Patricia', 'Valenzuela', 'Rojas', 'patricia.valenzuela@lagranja.cl', '123456', 3, 1, 2);

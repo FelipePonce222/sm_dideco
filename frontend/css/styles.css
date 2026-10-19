@@ -123,9 +123,9 @@ th {
     font-weight: 500;
 }
 
-.estado-sin-comenzar { background: #ffeaa7; color: #d63031; }
-.estado-completada { background: #55efc4; color: #00b894; }
-.estado-en-desarrollo { background: #74b9ff; color: #0984e3; }
+.estado-sin-comenzar { background: #ac4747; color: #ffc2eb; }
+.estado-completada { background: #3d684d; color: #b3f898; }
+.estado-en-desarrollo { background: #102230; color: #a4c3e2; }
 
 /* Color personalizado para la Barra Superior */
 header.navbar {

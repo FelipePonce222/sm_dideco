@@ -4,10 +4,11 @@ from flask_cors import CORS
 from database import get_db_connection, init_db
 
 app = Flask(__name__)
-# Permitir peticiones desde cualquier origen (CORS)
-CORS(app)
 
-# Inicializar la base de datos al arrancar
+# Configuración de CORS
+CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+# Inicializar la base de datos
 init_db()
 
 @app.route("/", methods=["GET"])
@@ -58,35 +59,43 @@ def obtener_actividades_recientes():
         print("Error al consultar actividades:", e)
         return jsonify({"error": str(e)}), 500
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
 
-# API: Autenticación de Usuario / Login
-@app.route("/api/login", methods=["POST"])
+# --- ENDPOINT DE LOGIN ---
+@app.route("/api/login", methods=["POST", "OPTIONS"])
 def login():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+
     try:
         data = request.get_json()
-        rut = data.get("rut")
+        rut_o_correo = data.get("rut")
         contrasena = data.get("contrasena")
 
+        # Limpiar el RUT para buscar tanto formateado como sin puntos/guión
+        rut_limpio = rut_o_correo.replace(".", "").replace("-", "").strip() if rut_o_correo else ""
+
         conn = get_db_connection()
-        # Consulta para verificar credenciales
         query = """
-            SELECT id_funcionario, nombre, appaterno, rut
+            SELECT id_funcionario, nombre, appaterno, rut, correo, password_hash
             FROM funcionario
-            WHERE (rut = ? OR email = ?)
+            WHERE (
+                rut = ? OR 
+                correo = ? OR 
+                REPLACE(REPLACE(rut, '.', ''), '-', '') = ?
+            ) AND activo = 1
         """
-        funcionario = conn.execute(query, (rut, rut)).fetchone()
+        funcionario = conn.execute(query, (rut_o_correo, rut_o_correo, rut_limpio)).fetchone()
         conn.close()
 
-        if funcionario:
-            # Sesión exitosa
+        # Verificar credenciales
+        if funcionario and funcionario["password_hash"] == contrasena:
             return jsonify({
                 "mensaje": "Login exitoso",
                 "usuario": {
                     "id": funcionario["id_funcionario"],
                     "nombre": f"{funcionario['nombre']} {funcionario['appaterno']}",
-                    "rut": funcionario["rut"]
+                    "rut": funcionario["rut"],
+                    "correo": funcionario["correo"]
                 }
             }), 200
         else:
@@ -95,3 +104,8 @@ def login():
     except Exception as e:
         print("Error en login:", e)
         return jsonify({"error": str(e)}), 500
+
+
+# --- EL BLOQUE PRINCIPAL DEBE IR AL FINAL DE TODO ---
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)

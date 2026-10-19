@@ -36,3 +36,30 @@ document.getElementById('btn-logout')?.addEventListener('click', function(e) {
     localStorage.removeItem('usuario_dideco');
     window.location.href = './login.html';
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Obtener la sesión guardada en el navegador
+    const usuarioGuardado = localStorage.getItem('usuario_dideco');
+
+    // 2. Si no hay usuario logueado, proteger la vista y redirigir al Login
+    if (!usuarioGuardado) {
+        window.location.href = './login.html';
+        return;
+    }
+
+    // 3. Convertir el JSON a objeto JavaScript
+    const usuario = JSON.parse(usuarioGuardado);
+
+    // 4. Buscar el elemento HTML e inyectar el nombre
+    const greetingElement = document.getElementById('user-greeting-name');
+    if (greetingElement && usuario.nombre) {
+        greetingElement.textContent = usuario.nombre;
+    }
+});
+
+// Lógica opcional para cerrar sesión si presionas el botón de Salir
+document.getElementById('btn-logout')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    localStorage.removeItem('usuario_dideco');
+    window.location.href = './login.html';
+});
