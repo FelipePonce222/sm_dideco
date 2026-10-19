@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Monitoreo DIDECO</title>
+    <link rel="icon" type="image/png" href="./assets/logo_muni.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
+
+    <div class="card shadow-lg p-4 rounded-4" style="max-width: 400px; width: 100%;">
+        <div class="text-center mb-4">
+            <img src="./assets/Logo_MLG.png" alt="Logo Municipalidad" height="60" class="mb-2">
+            <h1 class="h4 fw-bold text-dark mb-1">Sistema Monitoreo</h1>
+            <p class="text-muted small">DIDECO - Acceso de Funcionarios</p>
+        </div>
+
+        <div id="alert-error" class="alert alert-danger d-none py-2 small" role="alert"></div>
+
+        <form id="form-login">
+            <div class="mb-3">
+                <label for="rut" class="form-label fw-semibold">RUT o Usuario</label>
+                <input type="text" class="form-control" id="rut" required placeholder="Ej: 12345678-9">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label fw-semibold">Contraseña</label>
+                <input type="password" class="form-control" id="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Ingresar al Sistema</button>
+        </form>
+    </div>
+
+    <script src="./js/login.js"></script>
+</body>
+</html>

@@ -5,53 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Monitoreo Municipal</title>
     <link rel="icon" type="image/png" href="./assets/logo_muni.png">    
-<!-- Ruta explícita al CSS -->
+    
+    <!-- Bootstrap 5 CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Ruta a tu CSS personalizado -->
     <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body>
 
     <!-- BARRA SUPERIOR -->
-    <header class="navbar">
-        <div class="logo-container">
-        <img src="./assets/logo_muni.png" alt="Logo Municipalidad" height="32">
-        <span class="brand-title">Sistema Monitoreo Municipal</span>
-    </div>
-        <div class="user-menu">
+    <header class="navbar navbar-light bg-light border-bottom px-3">
+        <div class="logo-container d-flex align-items-center gap-2">
+            <img src="./assets/Logo_MLG.png" alt="Logo Municipalidad" height="32">
+            <span class="brand-title fw-bold">| Sistema Monitoreo Municipal</span>
+        </div>
+        <div class="user-menu d-flex align-items-center gap-3">
             <span class="user-greeting">Hola, <strong>Patricia V.</strong></span>
-            <button class="btn-menu">Menú</button>
+            <!-- Botón que activa el menú lateral desplegable -->
+            <button class="btn btn-outline-secondary btn-sm fw-bold" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu">
+                MENÚ
+            </button>
         </div>
     </header>
 
-    <main class="main-content">
+    <main class="main-content container-fluid my-4">
         <!-- SECCIÓN KPI DASHBOARD -->
-        <section class="dashboard-section">
-            <h2>Dashboard de Operaciones en Terreno</h2>
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <span class="kpi-title">Total Personal</span>
-                    <span class="kpi-value" id="kpi-personal">40</span>
+        <section class="dashboard-section mb-4">
+            <h2 class="h4 fw-bold mb-3">Dashboard de Operaciones en Terreno</h2>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card p-3 text-center shadow-sm">
+                        <span class="text-muted fw-semibold">Total Personal</span>
+                        <span class="fs-2 fw-bold" id="kpi-personal">40</span>
+                    </div>
                 </div>
-                <div class="kpi-card">
-                    <span class="kpi-title">Marcas</span>
-                    <span class="kpi-value" id="kpi-marcas">35</span>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center shadow-sm">
+                        <span class="text-muted fw-semibold">Marcas</span>
+                        <span class="fs-2 fw-bold" id="kpi-marcas">35</span>
+                    </div>
                 </div>
-                <div class="kpi-card">
-                    <span class="kpi-title">Tareas de hoy</span>
-                    <span class="kpi-value" id="kpi-tareas">20</span>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center shadow-sm">
+                        <span class="text-muted fw-semibold">Tareas de hoy</span>
+                        <span class="fs-2 fw-bold" id="kpi-tareas">20</span>
+                    </div>
                 </div>
-                <div class="kpi-card">
-                    <span class="kpi-title">Avance</span>
-                    <span class="kpi-value" id="kpi-avance">68%</span>
+                <div class="col-md-3">
+                    <div class="card p-3 text-center shadow-sm">
+                        <span class="text-muted fw-semibold">Avance</span>
+                        <span class="fs-2 fw-bold" id="kpi-avance">68%</span>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- SECCIÓN TABLA ACTIVIDADES -->
         <section class="table-section">
-            <h3>Resumen de Actividades recientes</h3>
-            <div class="table-container">
-                <table>
-                    <thead>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 fw-bold mb-0">Resumen de Actividades recientes</h3>
+                <button class="btn btn-primary btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevaTarea">
+                    + Nueva Tarea
+                </button>
+            </div>
+            <div class="table-responsive bg-white rounded shadow-sm border">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
                             <th>Funcionario</th>
                             <th>Tarea</th>
@@ -67,7 +87,68 @@
         </section>
     </main>
 
-    <!-- Ruta explícita al JS -->
+    <!-- MENÚ LATERAL (OFFCANVAS) FIEL AL WIREFRAME -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold" id="offcanvasMenuLabel">MENÚ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="list-group list-group-flush">
+                <a href="#" class="list-group-item list-group-item-action py-3">Mi Perfil</a>
+                <a href="#" class="list-group-item list-group-item-action py-3">Ver Asistencia</a>
+                <a href="#" class="list-group-item list-group-item-action py-3 active fw-bold">Gestionar Tareas</a>
+                <a href="#" class="list-group-item list-group-item-action py-3">Funcionarios</a>
+                <a href="#" class="list-group-item list-group-item-action py-3">Mapa</a>
+                <a href="#" class="list-group-item list-group-item-action py-3">Reportes PDF/Excel</a>
+                <a href="#" id="btn-logout" class="list-group-item list-group-item-action py-3 text-danger fw-bold">Cerrar Sesión</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVA TAREA -->
+    <div class="modal fade" id="modalNuevaTarea" tabindex="-1" aria-labelledby="modalNuevaTareaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="modalNuevaTareaLabel">📋 Asignar Nueva Tarea</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="form-nueva-tarea">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="titulo_tarea" class="form-label fw-semibold">Título de la Tarea</label>
+                            <input type="text" class="form-control" id="titulo_tarea" placeholder="Ej: Realizar visita adulto mayor" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fk_funcionario" class="form-label fw-semibold">Funcionario Asignado</label>
+                            <select class="form-select" id="fk_funcionario" required>
+                                <option value="1">Juan Perez</option>
+                                <option value="2">Dayanna Retamal</option>
+                                <option value="3">Patricia Valenzuela</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fk_estado" class="form-label fw-semibold">Estado Inicial</label>
+                            <select class="form-select" id="fk_estado" required>
+                                <option value="1">Sin comenzar</option>
+                                <option value="2">En desarrollo</option>
+                                <option value="4">Completado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-bold">Guardar Tarea</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Tu JS nativo -->
     <script src="./js/app.js"></script>
 </body>
 </html>

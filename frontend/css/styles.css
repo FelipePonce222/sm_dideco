@@ -7,7 +7,7 @@
 
 body {
     background-color: #f4f6f9;
-    color: #333;
+    color: #f8f8f8;
 }
 
 /* NAVBAR */
@@ -115,7 +115,7 @@ th {
     border-bottom: 2px solid #ccc;
 }
 
-/* BADGES DE ESTADO */
+/* BADGES DE ESTADO DE TAREA */
 .badge-estado {
     padding: 5px 10px;
     border-radius: 12px;
@@ -126,3 +126,17 @@ th {
 .estado-sin-comenzar { background: #ffeaa7; color: #d63031; }
 .estado-completada { background: #55efc4; color: #00b894; }
 .estado-en-desarrollo { background: #74b9ff; color: #0984e3; }
+
+/* Color personalizado para la Barra Superior */
+header.navbar {
+    background-color: #3d9735 !important;
+    border-bottom: 1px solid #88c583 !important;
+}
+
+/* Si quieres personalizar el botón de Menú */
+.user-menu .btn-menu, 
+.user-menu .btn {
+    background-color: #43b02a;
+    color: #ffffff;
+    border: 1px solid #3d9735;
+}

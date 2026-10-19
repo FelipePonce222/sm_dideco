@@ -30,3 +30,9 @@ function cargarActividades() {
         tbody.appendChild(tr);
     });
 }
+
+document.getElementById('btn-logout')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    localStorage.removeItem('usuario_dideco');
+    window.location.href = './login.html';
+});
