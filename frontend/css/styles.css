@@ -140,3 +140,36 @@ header.navbar {
     color: #ffffff;
     border: 1px solid #3d9735;
 }
+
+/*PERFIL JS*/
+
+/* Variables Globales de Tema */
+:root {
+    --color-muni: #3d9735;
+    --color-muni-hover: #31782a;
+}
+
+/* Clases de Utilidad Municipal */
+.bg-muni {
+    background-color: var(--color-muni) !important;
+}
+
+.text-muni {
+    color: var(--color-muni) !important;
+}
+
+.btn-muni {
+    background-color: var(--color-muni);
+    color: #ffffff;
+    border: none;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn-muni:hover {
+    background-color: var(--color-muni-hover);
+    color: #ffffff;
+}
+
+.border-muni {
+    border-color: var(--color-muni) !important;
+}
