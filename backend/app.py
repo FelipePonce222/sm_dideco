@@ -1,111 +1,87 @@
-import sqlite3
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from database import get_db_connection, init_db
+import sqlite3
+import os
 
 app = Flask(__name__)
+CORS(app)
 
-# Configuración de CORS
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+DB_PATH = os.path.join(os.path.dirname(__file__), 'dideco.db')
 
-# Inicializar la base de datos
-init_db()
+def get_db_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # Permite acceder a los campos por nombre
+    return conn
 
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "status": "online",
-        "mensaje": "¡Bienvenido a la API del Sistema de Monitoreo DIDECO!"
-    })
-
-# API: Obtener lista de roles
-@app.route("/api/roles", methods=["GET"])
-def obtener_roles():
+# 1. API: Obtener todas las Subdirecciones
+@app.route('/api/subdirecciones', methods=['GET'])
+def get_subdirecciones():
     conn = get_db_connection()
-    roles = conn.execute("SELECT * FROM rol_usuario").fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in roles])
-
-# API: Obtener lista de subdirecciones
-@app.route("/api/subdirecciones", methods=["GET"])
-def obtener_subdirecciones():
-    conn = get_db_connection()
-    subdirecciones = conn.execute("SELECT * FROM subdireccion").fetchall()
+    subdirecciones = conn.execute('SELECT * FROM subdireccion').fetchall()
     conn.close()
     return jsonify([dict(row) for row in subdirecciones])
 
-# API: Actividades recientes para la tabla del Dashboard
-@app.route("/api/actividades-recientes", methods=["GET"])
-def obtener_actividades_recientes():
-    try:
-        conn = get_db_connection()
-        query = """
-            SELECT 
-                f.nombre || ' ' || f.appaterno AS funcionario,
-                t.titulo_tarea AS tarea,
-                u.nombre_unidad AS unidad,
-                e.nombre_estado AS estado
-            FROM tareas t
-            JOIN funcionario f ON t.fk_funcionario = f.id_funcionario
-            JOIN unidad u ON f.fk_unidad = u.id_unidad
-            JOIN estado_tarea e ON t.fk_estado = e.id_estado
-            ORDER BY t.fecha_asignacion DESC
-            LIMIT 10
-        """
-        actividades = conn.execute(query).fetchall()
-        conn.close()
-        return jsonify([dict(row) for row in actividades])
-    except Exception as e:
-        print("Error al consultar actividades:", e)
-        return jsonify({"error": str(e)}), 500
+# 2. API: Obtener Departamentos por Subdirección
+@app.route('/api/departamentos/<int:subdireccion_id>', methods=['GET'])
+def get_departamentos(subdireccion_id):
+    conn = get_db_connection()
+    departamentos = conn.execute(
+        'SELECT * FROM departamento WHERE subdireccion_id = ?', 
+        (subdireccion_id,)
+    ).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in departamentos])
 
+# 3. API: Obtener Funcionarios por Departamento
+@app.route('/api/funcionarios/<int:departamento_id>', methods=['GET'])
+def get_funcionarios(departamento_id):
+    conn = get_db_connection()
+    funcionarios = conn.execute(
+        'SELECT id, rut, nombre, correo, cargo_unidad, tipo_contrato FROM funcionario WHERE departamento_id = ?', 
+        (departamento_id,)
+    ).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in funcionarios])
 
-# --- ENDPOINT DE LOGIN ---
-@app.route("/api/login", methods=["POST", "OPTIONS"])
-def login():
-    if request.method == "OPTIONS":
-        return jsonify({"status": "ok"}), 200
+# 4. API: Obtener Actividades Diarias de un Funcionario por Fecha
+@app.route('/api/actividades/<int:funcionario_id>/<string:fecha>', methods=['GET'])
+def get_actividades_funcionario(funcionario_id, fecha):
+    conn = get_db_connection()
+    actividades = conn.execute(
+        'SELECT * FROM actividad_diaria WHERE funcionario_id = ? AND fecha = ? ORDER BY hora_inicio ASC', 
+        (funcionario_id, fecha)
+    ).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in actividades])
 
-    try:
-        data = request.get_json()
-        rut_o_correo = data.get("rut")
-        contrasena = data.get("contrasena")
+# 5. API: Registrar Nueva Actividad Diaria
+@app.route('/api/actividades', methods=['POST'])
+def add_actividad():
+    data = request.get_json()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        INSERT INTO actividad_diaria 
+        (funcionario_id, fecha, hora_inicio, hora_fin, titulo_actividad, descripcion, estado, url_evidencia, observaciones)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        data.get('funcionario_id'),
+        data.get('fecha'),
+        data.get('hora_inicio'),
+        data.get('hora_fin'),
+        data.get('titulo_actividad'),
+        data.get('descripcion'),
+        data.get('estado', 'Pendiente'),
+        data.get('url_evidencia'),
+        data.get('observaciones')
+    ))
+    
+    conn.commit()
+    actividad_id = cursor.lastrowid
+    conn.close()
+    
+    return jsonify({'message': 'Actividad registrada con éxito', 'id': actividad_id}), 201
 
-        # Limpiar el RUT para buscar tanto formateado como sin puntos/guión
-        rut_limpio = rut_o_correo.replace(".", "").replace("-", "").strip() if rut_o_correo else ""
-
-        conn = get_db_connection()
-        query = """
-            SELECT id_funcionario, nombre, appaterno, rut, correo, password_hash
-            FROM funcionario
-            WHERE (
-                rut = ? OR 
-                correo = ? OR 
-                REPLACE(REPLACE(rut, '.', ''), '-', '') = ?
-            ) AND activo = 1
-        """
-        funcionario = conn.execute(query, (rut_o_correo, rut_o_correo, rut_limpio)).fetchone()
-        conn.close()
-
-        # Verificar credenciales
-        if funcionario and funcionario["password_hash"] == contrasena:
-            return jsonify({
-                "mensaje": "Login exitoso",
-                "usuario": {
-                    "id": funcionario["id_funcionario"],
-                    "nombre": f"{funcionario['nombre']} {funcionario['appaterno']}",
-                    "rut": funcionario["rut"],
-                    "correo": funcionario["correo"]
-                }
-            }), 200
-        else:
-            return jsonify({"error": "Credenciales inválidas"}), 401
-
-    except Exception as e:
-        print("Error en login:", e)
-        return jsonify({"error": str(e)}), 500
-
-
-# --- EL BLOQUE PRINCIPAL DEBE IR AL FINAL DE TODO ---
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True, port=5000)

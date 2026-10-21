@@ -3,152 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Monitoreo Municipal</title>
-    <link rel="icon" type="image/png" href="./assets/logo_muni.png">    
-    
-    <!-- Bootstrap 5 CSS via CDN -->
+    <title>Monitoreo DIDECO</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Ruta a tu CSS personalizado -->
-    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --color-azul-sub: #0d47a1;
+            --color-amarillo-depto: #fbc02d;
+            --color-verde-unidad: #2e7d32;
+            --color-muni: #3d9735;
+        }
+        .bg-subdireccion { background-color: var(--color-azul-sub) !important; }
+        .border-subdireccion { border-color: var(--color-azul-sub) !important; }
+        
+        .card-subdireccion {
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+        }
+        .card-subdireccion:hover, .card-subdireccion.active {
+            border-color: var(--color-azul-sub) !important;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(13, 71, 161, 0.2) !important;
+        }
+
+        .btn-depto {
+            background-color: #fff9c4;
+            color: #5d4037;
+            border: 1px solid var(--color-amarillo-depto);
+            font-weight: 600;
+        }
+        .btn-depto.active, .btn-depto:hover {
+            background-color: var(--color-amarillo-depto);
+            color: #000;
+        }
+
+        .funcionario-avatar {
+            width: 48px;
+            height: 48px;
+            background-color: var(--color-verde-unidad);
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .card-funcionario {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-top: 4px solid var(--color-verde-unidad);
+        }
+        .card-funcionario:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-light">
 
-    <!-- BARRA SUPERIOR -->
-    <header class="navbar navbar-light bg-light border-bottom px-3">
-        <div class="logo-container d-flex align-items-center gap-2">
-            <img src="./assets/Escudo-y-texto.png" alt="Logo Municipalidad" height="32">
-            <span class="brand-title fw-bold">| Sistema Monitoreo Municipal</span>
-        </div>
-        <div class="user-menu d-flex align-items-center gap-3">
-            <span class="user-greeting">Hola, <strong id="user-greeting-name">Cargando...</strong></span>
-            <!-- Botón Menú Canvas -->
-            <button class="btn btn-outline-secondary btn-sm fw-bold" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu">
-                MENÚ
-            </button>
-        </div>
-    </header>
+    <!-- Navbar inyectado dinámicamente -->
+    <div id="navbar-container"></div>
 
-    <main class="main-content container-fluid my-4">
-        <!-- SECCIÓN KPI DASHBOARD -->
-        <section class="dashboard-section mb-4">
-            <h2 class="h4 fw-bold mb-3">Dashboard de Operaciones en Terreno</h2>
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <div class="card p-3 text-center shadow-sm">
-                        <span class="text-muted fw-semibold">Total Personal</span>
-                        <span class="fs-2 fw-bold" id="kpi-personal">40</span>
+    <div class="container-fluid px-4 py-4">
+
+        <!-- Banner Encabezado -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+            <div class="card-body p-4 bg-white">
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-7">
+                        <span class="badge bg-subdireccion text-white px-3 py-1 mb-2">Organigrama Interactivo DIDECO</span>
+                        <h1 class="h3 fw-bold text-dark mb-1">Monitoreo Operativo Diario</h1>
+                        <p class="text-muted small mb-0">Navegue por Subdirecciones, Departamentos y consulte la agenda diaria con evidencia de cada funcionario.</p>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center shadow-sm">
-                        <span class="text-muted fw-semibold">Marcas</span>
-                        <span class="fs-2 fw-bold" id="kpi-marcas">35</span>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center shadow-sm">
-                        <span class="text-muted fw-semibold">Tareas de hoy</span>
-                        <span class="fs-2 fw-bold" id="kpi-tareas">20</span>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 text-center shadow-sm">
-                        <span class="text-muted fw-semibold">Avance</span>
-                        <span class="fs-2 fw-bold" id="kpi-avance">68%</span>
+                    <div class="col-lg-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0 shadow-none" id="input-buscar" placeholder="Buscar por nombre o unidad (ej: Dayanna Retamal)...">
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- SECCIÓN TABLA ACTIVIDADES -->
-        <section class="table-section">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h5 fw-bold mb-0">Resumen de Actividades recientes</h3>
-                <button class="btn btn-primary btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevaTarea">
-                    + Nueva Tarea
-                </button>
-            </div>
-            <div class="table-responsive bg-white rounded shadow-sm border">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Funcionario</th>
-                            <th>Tarea</th>
-                            <th>Unidad</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-actividades">
-                        <!-- Carga dinámica vía JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <!-- MENÚ LATERAL (OFFCANVAS) FIEL AL WIREFRAME -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
-        <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title fw-bold" id="offcanvasMenuLabel">MENÚ</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body p-0">
-            <div class="list-group list-group-flush">
-                <a href="./perfil.html" class="list-group-item list-group-item-action py-3">Mi Perfil</a>
-                <a href="#" class="list-group-item list-group-item-action py-3">Ver Asistencia</a>
-                <a href="#" class="list-group-item list-group-item-action py-3 active fw-bold">Gestionar Tareas</a>
-                <a href="#" class="list-group-item list-group-item-action py-3">Funcionarios</a>
-                <a href="#" class="list-group-item list-group-item-action py-3">Mapa</a>
-                <a href="#" class="list-group-item list-group-item-action py-3">Reportes PDF/Excel</a>
-                <a href="#" id="btn-logout" class="list-group-item list-group-item-action py-3 text-danger fw-bold">Cerrar Sesión</a>
+
+        <!-- CAPA 1: TARJETAS AZULES - SUBDIRECCIONES -->
+        <div class="mb-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-subdireccion rounded-circle p-2"><i class="bi bi-diagram-3 text-white"></i></span>
+                <h6 class="fw-bold text-dark mb-0 text-uppercase">1. Seleccione Subdirección</h6>
+            </div>
+            <div class="row g-3" id="grid-subdirecciones">
+                <!-- Se inyecta por JS / API -->
+                <div class="col-md-6 col-xl-3">
+                    <div class="card card-subdireccion border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 rounded-3 text-white bg-subdireccion"><i class="bi bi-people-fill fs-4"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Social Comunitaria</h6>
+                                <small class="text-muted">Participación, Deportes, Cultura</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="card card-subdireccion border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 rounded-3 text-white bg-subdireccion"><i class="bi bi-graph-up-arrow fs-4"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Desarrollo Económico (DDEL)</h6>
+                                <small class="text-muted">OMIL, OMDEL</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="card card-subdireccion border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 rounded-3 text-white bg-subdireccion"><i class="bi bi-gear-wide-connected fs-4"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Subdirección Técnica</h6>
+                                <small class="text-muted">Planificación, Control Gestión</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="card card-subdireccion border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 rounded-3 text-white bg-subdireccion"><i class="bi bi-building-gear fs-4"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Departamentos & Programas</h6>
+                                <small class="text-muted">Vivienda, Personas Mayores, etc.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- CAPA 2: BOTONES AMARILLOS - DEPARTAMENTOS -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-uppercase fw-bold small text-muted"><i class="bi bi-funnel-fill me-2 text-warning"></i>2. Departamento o Programa</span>
+                <span class="badge bg-light text-dark border" id="total-deptos-count">19 Departamentos</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2" id="container-deptos">
+                <!-- Botones inyectados por JS según subdirección elegida -->
+            </div>
+        </div>
+
+        <!-- CAPA 3: TARJETAS VERDES - FUNCIONARIOS Y AGENDA DIARIA -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-dark mb-0">
+                Funcionarios <span class="badge bg-success rounded-pill ms-1" id="count-funcionarios">93</span>
+            </h5>
+            <div class="small text-muted">
+                <span class="me-3"><i class="bi bi-circle-fill text-success"></i> Con Actividades Realizadas</span>
+                <span><i class="bi bi-circle-fill text-secondary"></i> Sin Actividades Hoy</span>
+            </div>
+        </div>
+
+        <!-- Grilla de Funcionarios -->
+        <div class="row g-3" id="grid-funcionarios">
+            <!-- Inyección dinámica de tarjetas de funcionario -->
+        </div>
+
     </div>
 
-    <!-- MODAL NUEVA TAREA -->
-    <div class="modal fade" id="modalNuevaTarea" tabindex="-1" aria-labelledby="modalNuevaTareaLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" id="modalNuevaTareaLabel">📋 Asignar Nueva Tarea</h5>
+    <!-- MODAL: CALENDARIO Y ACTIVIDADES CON EVIDENCIA -->
+    <div class="modal fade" id="modalCalendario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-subdireccion text-white rounded-top-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="funcionario-avatar border border-2 border-white shadow-sm" id="modal-avatar">DR</div>
+                        <div>
+                            <h5 class="modal-title fw-bold" id="modal-nombre">Dayanna Retamal</h5>
+                            <p class="small mb-0 text-white-50" id="modal-cargo">Profesional de Planificación | Unidad de Planificación</p>
+                        </div>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="form-nueva-tarea">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="titulo_tarea" class="form-label fw-semibold">Título de la Tarea</label>
-                            <input type="text" class="form-control" id="titulo_tarea" placeholder="Ej: Realizar visita adulto mayor" required>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        
+                        <!-- Columna Filtro Fecha -->
+                        <div class="col-md-4 border-end">
+                            <label class="form-label fw-bold text-secondary small">SELECCIONAR FECHA</label>
+                            <input type="date" class="form-control form-control-lg mb-3" id="input-fecha" value="2026-10-21">
+                            
+                            <div class="card bg-light border-0 rounded-3 p-3">
+                                <h6 class="fw-bold small text-muted mb-2">RESUMEN DE JORNADA</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="small"><i class="bi bi-check-circle-fill text-success me-1"></i> Realizadas</span>
+                                    <span class="fw-bold small" id="cant-realizadas">0</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="small"><i class="bi bi-clock-history text-warning me-1"></i> En Desarrollo</span>
+                                    <span class="fw-bold small" id="cant-desarrollo">0</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="small"><i class="bi bi-circle text-secondary me-1"></i> Pendientes</span>
+                                    <span class="fw-bold small" id="cant-pendientes">0</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="fk_funcionario" class="form-label fw-semibold">Funcionario Asignado</label>
-                            <select class="form-select" id="fk_funcionario" required>
-                                <option value="1">Juan Perez</option>
-                                <option value="2">Dayanna Retamal</option>
-                                <option value="3">Patricia Valenzuela</option>
-                            </select>
+
+                        <!-- Columna Listado de Actividades -->
+                        <div class="col-md-8">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-calendar-event me-2 text-success"></i>Actividades Registradas</h6>
+                                <button class="btn btn-sm btn-success fw-semibold" id="btn-add-actividad">
+                                    <i class="bi bi-plus-lg me-1"></i> Nueva Actividad
+                                </button>
+                            </div>
+
+                            <div id="lista-actividades" class="d-flex flex-column gap-2">
+                                <!-- Actividades dinámicas con botón "Ver Evidencia" -->
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="fk_estado" class="form-label fw-semibold">Estado Inicial</label>
-                            <select class="form-select" id="fk_estado" required>
-                                <option value="1">Sin comenzar</option>
-                                <option value="2">En desarrollo</option>
-                                <option value="4">Completado</option>
-                            </select>
-                        </div>
+
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary fw-bold">Guardar Tarea</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Tu JS nativo -->
-    <script src="./js/app.js"></script>
+    <script src="./js/navbar.js"></script>
 </body>
 </html>
