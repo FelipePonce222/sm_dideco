@@ -1,4 +1,11 @@
-/* Permitir que el root ocupe el 100% de la pantalla sin límites */
+/* VARIABLES DE IDENTIDAD CORPORATIVA */
+:root {
+  --color-primario: #0d6efd;      /* Color principal municipal (ej: Azul) */
+  --color-secundario: #198754;    /* Color de acento / éxito (ej: Verde) */
+  --color-encabezado: #212529;    /* Color de la barra superior */
+  --color-fondo: #f8f9fa;         /* Fondo general del sistema */
+}
+
 #root {
   width: 100%;
   max-width: 100% !important;
@@ -10,6 +17,18 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  background-color: #f8f9fa;
+  background-color: var(--color-fondo);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Personalización de Navbar Institucional */
+.navbar-custom {
+  background-color: var(--color-encabezado) !important;
+  border-bottom: 3px solid var(--color-primario);
+}
+
+/* Botones y Badges con Branding */
+.badge-institucional {
+  background-color: var(--color-primario) !important;
+  color: white;
 }

@@ -62,16 +62,28 @@ export default function App() {
   return (
     <div className="bg-light min-vh-100">
       
-      {/* HEADER / NAVBAR */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div className="container-fluid px-4">
-          <a className="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
-            <i className="bi bi-building-fill-check text-success fs-4"></i>
-            <span>DIDECO <span className="fw-light text-white-50">| Sistema de Monitoreo</span></span>
+      {/* NAVBAR INSTITUCIONAL */}
+      <nav className="navbar navbar-expand-lg navbar-dark shadow-sm py-2" style={{ backgroundColor: '#3d9735' }}>
+        <div className="container-fluid px-4 d-flex align-items-center justify-content-between">
+          <a className="navbar-brand fw-bold d-flex align-items-center gap-3" href="#">
+            <img 
+              src="/Escudo-y-texto.png" 
+              alt="Logo Municipalidad" 
+              height="42" 
+              className="d-inline-block align-text-top rounded"
+              onError={(e) => { e.target.style.display = 'none' }} // Oculta si no existe la imagen en public/
+            />
+            <div className="d-flex flex-column">
+              <span className="small text-black-80 fw-light"> | Sistema de Monitoreo Operativo</span>
+            </div>
           </a>
-          <span className="badge bg-success rounded-pill px-3 py-2">
-            <i className="bi bi-person-check-fill me-1"></i> {funcionariosFiltrados.length} Funcionarios Visibles
-          </span>
+
+          <div className="d-flex align-items-center gap-3">
+            <span className="badge bg-success rounded-pill px-3 py-2 shadow-sm fs-6">
+              <i className="bi bi-people-fill me-2"></i>
+              {funcionariosFiltrados.length} Funcionarios Visibles
+            </span>
+          </div>
         </div>
       </nav>
 
@@ -82,7 +94,7 @@ export default function App() {
           <div className="card-body p-4 bg-white rounded-4">
             <div className="row align-items-center g-3">
               <div className="col-lg-7">
-                <span className="badge bg-primary px-3 py-1 mb-2">Organigrama Interactivo DIDECO</span>
+                <span className="badge bg-success px-3 py-1 mb-2" >Organigrama Interactivo DIDECO</span>
                 <h1 className="h3 fw-bold text-dark mb-1">Panel de Monitoreo Operativo</h1>
                 <p className="text-muted small mb-0">Supervisión diaria de agendas y evidencias fotográficas por funcionario.</p>
               </div>
@@ -129,7 +141,7 @@ export default function App() {
                   }}
                 >
                   <div className="d-flex align-items-center gap-3">
-                    <div className="p-3 rounded-3 text-white bg-primary">
+                    <div className="p-3 rounded-3 text-white bg-success">
                       <i className="bi bi-people-fill fs-4"></i>
                     </div>
                     <div>
