@@ -1,0 +1,225 @@
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import AgendaModal from './components/AgendaModal'
+
+const API_BASE_URL = 'http://127.0.0.1:5000/api'
+
+export default function App() {
+  const [subdirecciones, setSubdirecciones] = useState([])
+  const [departamentos, setDepartamentos] = useState([])
+  const [funcionarios, setFuncionarios] = useState([])
+  
+  const [selectedSub, setSelectedSub] = useState(null)
+  const [selectedDepto, setSelectedDepto] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [funcionarioModal, setFuncionarioModal] = useState(null)
+
+  useEffect(() => {
+    cargarSubdirecciones()
+    cargarDepartamentos()
+    cargarFuncionarios()
+  }, [])
+
+  const cargarSubdirecciones = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/subdirecciones`)
+      setSubdirecciones(res.data)
+    } catch (err) {
+      console.error('Error cargando subdirecciones:', err)
+    }
+  }
+
+  const cargarDepartamentos = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/departamentos`)
+      setDepartamentos(res.data)
+    } catch (err) {
+      console.error('Error cargando departamentos:', err)
+    }
+  }
+
+  const cargarFuncionarios = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/funcionarios`)
+      setFuncionarios(res.data)
+    } catch (err) {
+      console.error('Error cargando funcionarios:', err)
+    }
+  }
+
+  const deptosFiltrados = selectedSub
+    ? departamentos.filter(d => d.subdireccion_id === selectedSub)
+    : departamentos
+
+  const funcionariosFiltrados = funcionarios.filter(f => {
+    const coincideSub = selectedSub ? f.subdireccion_id === selectedSub : true
+    const coincideDepto = selectedDepto ? f.departamento_id === selectedDepto : true
+    const coincideBusqueda = f.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             (f.cargo && f.cargo.toLowerCase().includes(searchTerm.toLowerCase()))
+    return coincideSub && coincideDepto && coincideBusqueda
+  })
+
+  return (
+    <div className="bg-light min-vh-100">
+      
+      {/* HEADER / NAVBAR */}
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div className="container-fluid px-4">
+          <a className="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
+            <i className="bi bi-building-fill-check text-success fs-4"></i>
+            <span>DIDECO <span className="fw-light text-white-50">| Sistema de Monitoreo</span></span>
+          </a>
+          <span className="badge bg-success rounded-pill px-3 py-2">
+            <i className="bi bi-person-check-fill me-1"></i> {funcionariosFiltrados.length} Funcionarios Visibles
+          </span>
+        </div>
+      </nav>
+
+      <div className="container-fluid px-4 py-4">
+
+        {/* BANNER Y BUSCADOR */}
+        <div className="card border-0 shadow-sm rounded-4 mb-4">
+          <div className="card-body p-4 bg-white rounded-4">
+            <div className="row align-items-center g-3">
+              <div className="col-lg-7">
+                <span className="badge bg-primary px-3 py-1 mb-2">Organigrama Interactivo DIDECO</span>
+                <h1 className="h3 fw-bold text-dark mb-1">Panel de Monitoreo Operativo</h1>
+                <p className="text-muted small mb-0">Supervisión diaria de agendas y evidencias fotográficas por funcionario.</p>
+              </div>
+              <div className="col-lg-5">
+                <div className="input-group">
+                  <span className="input-group-text bg-light border-end-0 text-muted"><i className="bi bi-search"></i></span>
+                  <input
+                    type="text"
+                    className="form-control bg-light border-start-0 shadow-none"
+                    placeholder="Buscar por nombre o cargo..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CAPA 1: SUBDIRECCIONES */}
+        <div className="mb-4">
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <h6 className="fw-bold text-dark mb-0 text-uppercase d-flex align-items-center gap-2">
+              <i className="bi bi-diagram-3-fill text-primary"></i> 1. Seleccionar Subdirección
+            </h6>
+            {selectedSub && (
+              <button className="btn btn-sm btn-link text-decoration-none p-0" onClick={() => { setSelectedSub(null); setSelectedDepto(null); }}>
+                <i className="bi bi-x-circle me-1"></i> Ver Todas
+              </button>
+            )}
+          </div>
+
+          <div className="row g-3">
+            {subdirecciones.map(sub => (
+              <div key={sub.id} className="col-12 col-sm-6 col-lg-3">
+                <div
+                  className={`card border-0 shadow-sm rounded-3 p-3 h-100 transition-all ${
+                    selectedSub === sub.id ? 'border border-2 border-primary bg-primary-subtle' : 'bg-white'
+                  }`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    setSelectedSub(selectedSub === sub.id ? null : sub.id)
+                    setSelectedDepto(null)
+                  }}
+                >
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="p-3 rounded-3 text-white bg-primary">
+                      <i className="bi bi-people-fill fs-4"></i>
+                    </div>
+                    <div>
+                      <h6 className="fw-bold mb-0 text-dark">{sub.nombre}</h6>
+                      <small className="text-muted">Subdirección DIDECO</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CAPA 2: DEPARTAMENTOS */}
+        <div className="card border-0 shadow-sm rounded-4 p-3 mb-4">
+          <div className="d-flex align-items-center justify-content-between mb-2">
+            <span className="text-uppercase fw-bold small text-muted">
+              <i className="bi bi-funnel-fill me-2 text-warning"></i>2. Filtrar por Departamento / Programa
+            </span>
+            <span className="badge bg-light text-dark border">{deptosFiltrados.length} Disponibles</span>
+          </div>
+          
+          <div className="d-flex flex-wrap gap-2">
+            <button
+              className={`btn btn-sm rounded-pill px-3 fw-semibold ${
+                selectedDepto === null ? 'btn-warning text-dark' : 'btn-outline-secondary'
+              }`}
+              onClick={() => setSelectedDepto(null)}
+            >
+              Todos los Departamentos
+            </button>
+            
+            {deptosFiltrados.map(dep => (
+              <button
+                key={dep.id}
+                className={`btn btn-sm rounded-pill px-3 fw-semibold ${
+                  selectedDepto === dep.id ? 'btn-warning text-dark' : 'btn-outline-secondary'
+                }`}
+                onClick={() => setSelectedDepto(selectedDepto === dep.id ? null : dep.id)}
+              >
+                {dep.nombre}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* CAPA 3: FUNCIONARIOS */}
+        <div className="row g-3">
+          {funcionariosFiltrados.map(func => (
+            <div key={func.id} className="col-12 col-sm-6 col-md-4 col-xl-3">      
+              <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-top border-4 border-success">
+                <div className="d-flex align-items-start gap-3">
+                  <div className="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px' }}>
+                    {func.nombre ? func.nombre.substring(0, 2).toUpperCase() : 'FC'}
+                  </div>
+                  <div className="flex-grow-1">
+                    <span className="badge bg-light text-dark border small fw-normal mb-1">
+                      {func.departamento || 'Programa DIDECO'}
+                    </span>
+                    <h6 className="fw-bold text-dark mb-0">{func.nombre}</h6>
+                    <small className="text-muted d-block mb-3">{func.cargo || 'Funcionario Municipal'}</small>
+
+                    <div className="d-flex align-items-center justify-content-between pt-2 border-top">
+                      <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small">
+                        <i className="bi bi-check-circle-fill me-1"></i> Activo
+                      </span>
+                      <button 
+                        className="btn btn-sm btn-outline-success rounded-2 fw-semibold px-3"
+                        onClick={() => setFuncionarioModal(func)}
+                      >
+                        <i className="bi bi-calendar-week me-1"></i> Ver Agenda
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+
+      {/* MODAL DE AGENDA */}
+      {funcionarioModal && (
+        <AgendaModal 
+          funcionario={funcionarioModal} 
+          onClose={() => setFuncionarioModal(null)} 
+        />
+      )}
+
+    </div>
+  )
+}

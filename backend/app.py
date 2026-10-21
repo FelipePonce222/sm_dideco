@@ -1,87 +1,75 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
-import os
 
 app = Flask(__name__)
+# Permitir que React (localhost:5173) se conecte sin bloqueos de CORS
 CORS(app)
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'dideco.db')
+DATABASE = 'dideco.db'  # Nombre de tu base de datos SQLite
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # Permite acceder a los campos por nombre
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row  # Para retornar los datos como diccionarios/JSON
     return conn
 
-# 1. API: Obtener todas las Subdirecciones
+# 1. API Subdirecciones (Capa Azul)
 @app.route('/api/subdirecciones', methods=['GET'])
 def get_subdirecciones():
     conn = get_db_connection()
-    subdirecciones = conn.execute('SELECT * FROM subdireccion').fetchall()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM subdirecciones")
+    rows = cursor.fetchall()
     conn.close()
-    return jsonify([dict(row) for row in subdirecciones])
+    return jsonify([dict(row) for row in rows])
 
-# 2. API: Obtener Departamentos por Subdirección
-@app.route('/api/departamentos/<int:subdireccion_id>', methods=['GET'])
-def get_departamentos(subdireccion_id):
-    conn = get_db_connection()
-    departamentos = conn.execute(
-        'SELECT * FROM departamento WHERE subdireccion_id = ?', 
-        (subdireccion_id,)
-    ).fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in departamentos])
-
-# 3. API: Obtener Funcionarios por Departamento
-@app.route('/api/funcionarios/<int:departamento_id>', methods=['GET'])
-def get_funcionarios(departamento_id):
-    conn = get_db_connection()
-    funcionarios = conn.execute(
-        'SELECT id, rut, nombre, correo, cargo_unidad, tipo_contrato FROM funcionario WHERE departamento_id = ?', 
-        (departamento_id,)
-    ).fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in funcionarios])
-
-# 4. API: Obtener Actividades Diarias de un Funcionario por Fecha
-@app.route('/api/actividades/<int:funcionario_id>/<string:fecha>', methods=['GET'])
-def get_actividades_funcionario(funcionario_id, fecha):
-    conn = get_db_connection()
-    actividades = conn.execute(
-        'SELECT * FROM actividad_diaria WHERE funcionario_id = ? AND fecha = ? ORDER BY hora_inicio ASC', 
-        (funcionario_id, fecha)
-    ).fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in actividades])
-
-# 5. API: Registrar Nueva Actividad Diaria
-@app.route('/api/actividades', methods=['POST'])
-def add_actividad():
-    data = request.get_json()
+# 2. API Departamentos (Capa Amarilla)
+@app.route('/api/departamentos', methods=['GET'])
+def get_departamentos():
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    cursor.execute('''
-        INSERT INTO actividad_diaria 
-        (funcionario_id, fecha, hora_inicio, hora_fin, titulo_actividad, descripcion, estado, url_evidencia, observaciones)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        data.get('funcionario_id'),
-        data.get('fecha'),
-        data.get('hora_inicio'),
-        data.get('hora_fin'),
-        data.get('titulo_actividad'),
-        data.get('descripcion'),
-        data.get('estado', 'Pendiente'),
-        data.get('url_evidencia'),
-        data.get('observaciones')
-    ))
-    
-    conn.commit()
-    actividad_id = cursor.lastrowid
+    cursor.execute("SELECT * FROM departamentos")
+    rows = cursor.fetchall()
     conn.close()
-    
-    return jsonify({'message': 'Actividad registrada con éxito', 'id': actividad_id}), 201
+    return jsonify([dict(row) for row in rows])
+
+# 3. API Funcionarios (Capa Verde)
+@app.route('/api/funcionarios', methods=['GET'])
+def get_funcionarios():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT f.id, f.nombre, f.cargo, f.subdireccion_id, f.departamento_id,
+               d.nombre as departamento, s.nombre as subdireccion
+        FROM funcionarios f
+        LEFT JOIN departamentos d ON f.departamento_id = d.id
+        LEFT JOIN subdirecciones s ON f.subdireccion_id = s.id
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows])
+
+# 4. API Actividades por Funcionario y Fecha (Modal Agenda)
+@app.route('/api/actividades', methods=['GET'])
+def get_actividades():
+    funcionario_id = request.args.get('funcionario_id')
+    fecha = request.args.get('fecha')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM actividades WHERE funcionario_id = ?"
+    params = [funcionario_id]
+
+    if fecha:
+        query += " AND fecha = ?"
+        params.append(fecha)
+
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows])
 
 if __name__ == '__main__':
+    # Ejecutar en el puerto 5000
     app.run(debug=True, port=5000)
