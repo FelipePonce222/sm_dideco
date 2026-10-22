@@ -1,46 +1,81 @@
-# 🏛️ Sistema de Monitoreo de Funciones y Tareas Municipales (SMM-DIDECO) 🏛️
-> **Cliente:** Municipalidad de La Granja — Dirección de Desarrollo Comunitario (DIDECO)  
-> **Institución Patrocinante:** Duoc UC — Escuela de Informática y Telecomunicaciones  
-> **Jefe de Proyecto:** Felipe Ponce  
-> **Versión:** 1.0 (Producto Mínimo Viable - PMV)  
+# Sistema de Monitoreo Operativo DIDECO
+
+Un dashboard ejecutivo moderno e interactivo diseñado para la gestión, control de agenda y seguimiento de evidencias operativas de los 93 funcionarios municipales de la Dirección de Desarrollo Comunitario (DIDECO).
 
 ---
 
-## Descripción del Proyecto
-El **Sistema Monitoreo DIDECO** es una plataforma híbrida (Web Responsiva / Progressive Web App - PWA) diseñada para optimizar la gestión, planificación y supervisión en tiempo real de las labores asignadas a los funcionarios municipalizados en terreno.
+## 🚀 Características Principales
 
-Permite automatizar:
-* 📍 **Marcaje de Asistencia (Check-in / Check-out)** con captura obligatoria de coordenadas GPS.
-* 📋 **Asignación y Seguimiento de Tareas** por funcionario o cuadrilla.
-* 📸 **Carga de Evidencias Fotográficas** y actualización de estados en tiempo real.
-* 🗺️ **Dashboard de Control Institucional** con mapa interactivo de la comuna de La Granja.
-* 📑 **Gestión de Contratos** (Planta, Contrata, Honorarios y Código del Trabajo).
-
----
-
-## Arquitectura y Tecnologías
-* **Backend:** Python 3.11+ con Flask (API RESTful)
-* **Frontend:** Web Responsiva / PWA (HTML5, CSS3, JavaScript ES6+, Bootstrap 5)
-* **Mapas & Geolocation:** Leaflet.js (OpenStreetMap) + HTML5 Geolocation API
-* **Base de Datos:** SQLite / MySQL (Diseño normalizado de 12 tablas en 3FN)
-* **Control de Versiones:** Git / GitHub
+- **Navegación Multinivel (Organigrama Interactivo):**
+  - **Capa 1:** Selección por Subdirección.
+  - **Capa 2:** Filtrado dinámico por Departamento o Programa.
+  - **Capa 3:** Tarjetas interactivas de Funcionarios.
+- **Buscador en Tiempo Real:** Filtrado instantáneo por nombre o cargo del funcionario.
+- **Gestión Integral de Personal (CRUD Funcionarios):**
+  - Alta de nuevos funcionarios asignando Subdirección y Departamento.
+  - Edición de perfiles (nombre, cargo, tipo de contrato).
+  - Eliminación con actualización inmediata en interfaz.
+- **Control de Agenda y Tareas (CRUD Actividades):**
+  - Registro de actividades diarias con fecha, hora y estado (*Pendiente, En Proceso, Realizada*).
+  - Vinculación de evidencias fotográficas o documentales por tarea.
+- **Diseño Institucional Responsive:** Interfaz estilizada con Bootstrap 5, paleta corporativa y logotipo municipal.
 
 ---
 
-## 📂 Estructura del Proyecto
+## 🛠️ Stack Tecnológico
+
+### **Frontend**
+- **React** (Vite)
+- **Bootstrap 5** + Bootstrap Icons
+- **Axios** (Cliente HTTP)
+
+### **Backend**
+- **Python** (Flask)
+- **Flask-CORS** (Manejo de CORS & Preflight Requests)
+- **SQLite3** (Base de datos relacional lightweight)
+
+---
+
+## 📁 Estructura del Proyecto
 
 ```text
-sistema-dideco/
 ├── backend/
-│   ├── app.py               # Punto de entrada de la aplicación Flask
-│   ├── database.py          # Conexión y gestión de la Base de Datos
-│   └── routes/              # Endpoints de la API (Usuarios, Tareas, Marcas)
-├── frontend/
-│   ├── index.html           # Vista Login / PWA Móvil Funcionario
-│   ├── dashboard.html       # Vista Web Escritorio para Jefaturas
-│   ├── css/                 # Estilos personalizados
-│   └── js/                  # Lógica de geolocalización, consumo de API y mapas
-├── schema.sql               # Script de creación de la Base de Datos
-├── .gitignore               # Archivos excluidos del control de versiones
-├── README.md                # Documentación principal del proyecto
-└── requirements.txt         # Dependencias de Python
+│   ├── app.py                # Servidor Flask y API RESTful
+│   ├── dideco.db             # Base de datos SQLite
+│   └── seed_data.py          # Script de carga inicial (93 funcionarios)
+│
+└── frontend_react/
+    ├── public/
+    │   └── logo_muni.png     # Logo institucional
+    └── src/
+        ├── components/
+        │   └── AgendaModal.jsx # Modal CRUD de actividades y evidencias
+        ├── App.jsx           # Componente principal y CRUD de funcionarios
+        ├── main.jsx          # Punto de entrada de React
+        └── index.css         # Personalización de estilos y variables CSS
+
+##⚡ Instalación de backend Flask
+
+# Navegar a la carpeta del backend
+cd backend
+
+# (Opcional) Activar entorno virtual
+python -m venv venv
+# En Windows: venv\Scripts\activate
+
+# Instalar dependencias
+pip install flask flask-cors
+
+# Ejecutar el servidor (Corre en [http://127.0.0.1:5000](http://127.0.0.1:5000))
+python app.py
+
+##⚡ Instalación de React
+
+# Abrir otra terminal y navegar al frontend
+cd frontend_react
+
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo (Corre en http://localhost:5173)
+npm run dev

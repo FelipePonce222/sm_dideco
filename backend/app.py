@@ -132,5 +132,92 @@ def eliminar_funcionario(id):
         print("Error en DELETE:", e)
         return jsonify({"error": str(e)}), 500
 
+
+# API: Obtener actividades de un funcionario específico
+@app.route('/api/funcionarios/<int:funcionario_id>/actividades', methods=['GET'])
+def get_actividades(funcionario_id):
+    conn = get_db_connection()
+    actividades = conn.execute('''
+        SELECT * FROM actividades 
+        WHERE funcionario_id = ? 
+        ORDER BY fecha DESC, hora DESC
+    ''', (funcionario_id,)).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in actividades])
+
+# API: Crear una nueva actividad para un funcionario
+@app.route('/api/actividades', methods=['POST', 'OPTIONS'])
+def crear_actividad():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    try:
+        datos = request.json or {}
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO actividades (funcionario_id, titulo, descripcion, fecha, hora, estado, evidencia_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            int(datos.get('funcionario_id')),
+            datos.get('titulo'),
+            datos.get('descripcion', ''),
+            datos.get('fecha'),
+            datos.get('hora', ''),
+            datos.get('estado', 'Pendiente'),
+            datos.get('evidencia_url', '')
+        ))
+        conn.commit()
+        nuevo_id = cursor.lastrowid
+        conn.close()
+        return jsonify({"mensaje": "Actividad creada correctamente", "id": nuevo_id}), 201
+    except Exception as e:
+        print("Error en POST /api/actividades:", e)
+        return jsonify({"error": str(e)}), 500
+
+# API: Actualizar una actividad existente
+@app.route('/api/actividades/<int:id>', methods=['PUT', 'OPTIONS'])
+def editar_actividad(id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    try:
+        datos = request.json or {}
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE actividades
+            SET titulo = ?, descripcion = ?, fecha = ?, hora = ?, estado = ?, evidencia_url = ?
+            WHERE id = ?
+        ''', (
+            datos.get('titulo'),
+            datos.get('descripcion'),
+            datos.get('fecha'),
+            datos.get('hora'),
+            datos.get('estado'),
+            datos.get('evidencia_url'),
+            id
+        ))
+        conn.commit()
+        conn.close()
+        return jsonify({"mensaje": "Actividad actualizada correctamente"}), 200
+    except Exception as e:
+        print("Error en PUT /api/actividades:", e)
+        return jsonify({"error": str(e)}), 500
+
+# API: Eliminar una actividad
+@app.route('/api/actividades/<int:id>', methods=['DELETE', 'OPTIONS'])
+def eliminar_actividad(id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM actividades WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"mensaje": "Actividad eliminada correctamente"}), 200
+    except Exception as e:
+        print("Error en DELETE /api/actividades:", e)
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
