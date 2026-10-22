@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import AgendaModal from './components/AgendaModal'
 import Login from './components/Login'
-import Sidebar from './components/Sidebar'
+import Sidebar from './components/sidebar'
 
 const API_BASE_URL = 'http://127.0.0.1:5000/api'
 

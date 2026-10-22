@@ -12,15 +12,8 @@ export default function Sidebar({ vistaActual, setVistaActual, user, onLogout })
       {/* HEADER DEL MENÚ */}
       <div className="offcanvas-header border-bottom border-secondary">
         <div className="d-flex align-items-center gap-2">
-          <img 
-            src="/Escudo-y-texto.png" 
-            alt="Logo" 
-            height="36" 
-            className="rounded bg-white p-1"
-            onError={(e) => { e.target.style.display = 'none' }}
-          />
           <div>
-            <h6 className="fw-bold mb-0 text-white" id="menuLateralLabel">DIDECO Muni</h6>
+            <h6 className="fw-bold mb-0 text-white" id="menuLateralLabel">DIDECO </h6>
             <small className="text-white-50" style={{ fontSize: '0.75rem' }}>Menú de Navegación</small>
           </div>
         </div>
