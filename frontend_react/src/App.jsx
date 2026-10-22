@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import AgendaModal from './components/AgendaModal'
 import Login from './components/Login'
+import Sidebar from './components/Sidebar'
 
 const API_BASE_URL = 'http://127.0.0.1:5000/api'
 
@@ -20,6 +21,7 @@ export default function App() {
   const [subdirecciones, setSubdirecciones] = useState([])
   const [departamentos, setDepartamentos] = useState([])
   const [funcionarios, setFuncionarios] = useState([])
+  const [vistaActual, setVistaActual] = useState('dashboard')
   
   const [selectedSub, setSelectedSub] = useState(null)
   const [selectedDepto, setSelectedDepto] = useState(null)
@@ -157,21 +159,34 @@ export default function App() {
   return (
     <div className="bg-light min-vh-100">
       
-      {/* NAVBAR INSTITUCIONAL */}
+      {/* NAVBAR INSTITUCIONAL SUPERIOR CON BOTÓN DE MENÚ */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-success shadow-sm py-2">
         <div className="container-fluid px-4 d-flex align-items-center justify-content-between">
-          <a className="navbar-brand fw-bold d-flex align-items-center gap-3" href="#">
-            <img 
-              src="/Escudo-y-texto.png" 
-              alt="Logo Municipalidad" 
-              height="42" 
-              className="d-inline-block align-text-top rounded"
-              onError={(e) => { e.target.style.display = 'none' }}
-            />
-            <div className="d-flex flex-column">
-              <span className="small text-white-90 fw-light"> | Sistema de Monitoreo Operativo</span>
-            </div>
-          </a>
+          
+          <div className="d-flex align-items-center gap-3">
+            {/* BOTÓN PARA ABRIR EL MENÚ DESPLEGABLE */}
+            <button 
+              className="btn btn-outline-light border-0 px-2 py-1" 
+              type="button" 
+              data-bs-toggle="offcanvas" 
+              data-bs-target="#menuLateral" 
+              aria-controls="menuLateral"
+              title="Abrir Menú"
+            >
+              <i className="bi bi-list fs-2"></i>
+            </button>
+
+            <a className="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
+              <img 
+                src="/Escudo-y-texto.png" 
+                alt="Logo Municipalidad" 
+                height="40" 
+                className="d-inline-block align-text-top rounded"
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
+              <span className="small text-white-90 fw-light d-none d-md-inline">| Sistema de Monitoreo Operativo</span>
+            </a>
+          </div>
 
           <div className="d-flex align-items-center gap-3">
             <button 
@@ -184,170 +199,196 @@ export default function App() {
               <i className="bi bi-people-fill me-2"></i>
               {funcionariosFiltrados.length} Visibles
             </span>
-            <button 
-              className="btn btn-outline-light rounded-pill px-3 fw-semibold"
-              onClick={handleLogout}
-              title="Cerrar Sesión"
-            >
-              <i className="bi bi-box-arrow-right me-1"></i> Salir
-            </button>
           </div>
+
         </div>
       </nav>
 
+      {/* COMPONENTE MENÚ SIDEBAR DESPLEGABLE */}
+      <Sidebar 
+        vistaActual={vistaActual} 
+        setVistaActual={setVistaActual} 
+        user={user} 
+        onLogout={handleLogout} 
+      />
+
+      {/* CONTENIDO PRINCIPAL */}
       <div className="container-fluid px-4 py-4">
 
-        {/* BANNER Y BUSCADOR */}
-        <div className="card border-0 shadow-sm rounded-4 mb-4">
-          <div className="card-body p-4 bg-white rounded-4">
-            <div className="row align-items-center g-3">
-              <div className="col-lg-7">
-                <span className="badge bg-success px-3 py-1 mb-2">Organigrama Interactivo DIDECO</span>
-                <h1 className="h3 fw-bold text-dark mb-1">Panel de Monitoreo Operativo</h1>
-                <p className="text-muted small mb-0">Supervisión diaria de agendas y evidencias fotográficas por funcionario.</p>
-              </div>
-              <div className="col-lg-5">
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0 text-muted"><i className="bi bi-search"></i></span>
-                  <input
-                    type="text"
-                    className="form-control bg-light border-start-0 shadow-none"
-                    placeholder="Buscar por nombre o cargo..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+        {vistaActual === 'dashboard' || vistaActual === 'funcionarios' ? (
+          <>
+            {/* BANNER Y BUSCADOR */}
+            <div className="card border-0 shadow-sm rounded-4 mb-4">
+              <div className="card-body p-4 bg-white rounded-4">
+                <div className="row align-items-center g-3">
+                  <div className="col-lg-7">
+                    <span className="badge bg-success px-3 py-1 mb-2">Organigrama Interactivo DIDECO</span>
+                    <h1 className="h3 fw-bold text-dark mb-1">Panel de Monitoreo Operativo</h1>
+                    <p className="text-muted small mb-0">Supervisión diaria de agendas y evidencias fotográficas por funcionario.</p>
+                  </div>
+                  <div className="col-lg-5">
+                    <div className="input-group">
+                      <span className="input-group-text bg-light border-end-0 text-muted"><i className="bi bi-search"></i></span>
+                      <input
+                        type="text"
+                        className="form-control bg-light border-start-0 shadow-none"
+                        placeholder="Buscar por nombre o cargo..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* CAPA 1: SUBDIRECCIONES */}
-        <div className="mb-4">
-          <div className="d-flex align-items-center justify-content-between mb-3">
-            <h6 className="fw-bold text-dark mb-0 text-uppercase d-flex align-items-center gap-2">
-              <i className="bi bi-diagram-3-fill text-primary"></i> 1. Seleccionar Subdirección
-            </h6>
-            {selectedSub && (
-              <button className="btn btn-sm btn-link text-decoration-none p-0" onClick={() => { setSelectedSub(null); setSelectedDepto(null); }}>
-                <i className="bi bi-x-circle me-1"></i> Ver Todas
-              </button>
-            )}
-          </div>
-
-          <div className="row g-3">
-            {subdirecciones.map(sub => (
-              <div key={sub.id} className="col-12 col-sm-6 col-lg-3">
-                <div
-                  className={`card border-0 shadow-sm rounded-3 p-3 h-100 transition-all ${
-                    selectedSub === sub.id ? 'border border-2 border-success bg-success-subtle' : 'bg-white'
-                  }`}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    setSelectedSub(selectedSub === sub.id ? null : sub.id)
-                    setSelectedDepto(null)
-                  }}
-                >
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="p-3 rounded-3 text-white bg-success">
-                      <i className="bi bi-people-fill fs-4"></i>
-                    </div>
-                    <div>
-                      <h6 className="fw-bold mb-0 text-dark">{sub.nombre}</h6>
-                      <small className="text-muted">Subdirección DIDECO</small>
-                    </div>
-                  </div>
-                </div>
+            {/* CAPA 1: SUBDIRECCIONES */}
+            <div className="mb-4">
+              <div className="d-flex align-items-center justify-content-between mb-3">
+                <h6 className="fw-bold text-dark mb-0 text-uppercase d-flex align-items-center gap-2">
+                  <i className="bi bi-diagram-3-fill text-primary"></i> 1. Seleccionar Subdirección
+                </h6>
+                {selectedSub && (
+                  <button className="btn btn-sm btn-link text-decoration-none p-0" onClick={() => { setSelectedSub(null); setSelectedDepto(null); }}>
+                    <i className="bi bi-x-circle me-1"></i> Ver Todas
+                  </button>
+                )}
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* CAPA 2: DEPARTAMENTOS */}
-        <div className="card border-0 shadow-sm rounded-4 p-3 mb-4">
-          <div className="d-flex align-items-center justify-content-between mb-2">
-            <span className="text-uppercase fw-bold small text-muted">
-              <i className="bi bi-funnel-fill me-2 text-warning"></i>2. Filtrar por Departamento / Programa
-            </span>
-            <span className="badge bg-light text-dark border">{deptosFiltrados.length} Disponibles</span>
-          </div>
-          
-          <div className="d-flex flex-wrap gap-2">
-            <button
-              className={`btn btn-sm rounded-pill px-3 fw-semibold ${
-                selectedDepto === null ? 'btn-warning text-dark' : 'btn-outline-secondary'
-              }`}
-              onClick={() => setSelectedDepto(null)}
-            >
-              Todos los Departamentos
-            </button>
-            
-            {deptosFiltrados.map(dep => (
-              <button
-                key={dep.id}
-                className={`btn btn-sm rounded-pill px-3 fw-semibold ${
-                  selectedDepto === dep.id ? 'btn-warning text-dark' : 'btn-outline-secondary'
-                }`}
-                onClick={() => setSelectedDepto(selectedDepto === dep.id ? null : dep.id)}
-              >
-                {dep.nombre}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* CAPA 3: FUNCIONARIOS */}
-        <div className="row g-3">
-          {funcionariosFiltrados.map(func => (
-            <div key={func.id} className="col-12 col-sm-6 col-md-4 col-xl-3">      
-              <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-top border-4 border-success position-relative">
-                
-                {/* BOTONES ACCION EDITAR / ELIMINAR */}
-                <div className="position-absolute top-0 end-0 p-2 d-flex gap-1">
-                  <button 
-                    className="btn btn-sm btn-light text-primary border-0 p-1"
-                    title="Editar Funcionario"
-                    onClick={() => abrirFormulario(func)}
-                  >
-                    <i className="bi bi-pencil-fill"></i>
-                  </button>
-                  <button 
-                    className="btn btn-sm btn-light text-danger border-0 p-1"
-                    title="Eliminar Funcionario"
-                    onClick={() => handleEliminar(func.id)}
-                  >
-                    <i className="bi bi-trash-fill"></i>
-                  </button>
-                </div>
-
-                <div className="d-flex align-items-start gap-3 mt-2">
-                  <div className="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px' }}>
-                    {func.nombre ? func.nombre.substring(0, 2).toUpperCase() : 'FC'}
+              <div className="row g-3">
+                {subdirecciones.map(sub => (
+                  <div key={sub.id} className="col-12 col-sm-6 col-lg-3">
+                    <div
+                      className={`card border-0 shadow-sm rounded-3 p-3 h-100 transition-all ${
+                        selectedSub === sub.id ? 'border border-2 border-success bg-success-subtle' : 'bg-white'
+                      }`}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        setSelectedSub(selectedSub === sub.id ? null : sub.id)
+                        setSelectedDepto(null)
+                      }}
+                    >
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="p-3 rounded-3 text-white bg-success">
+                          <i className="bi bi-people-fill fs-4"></i>
+                        </div>
+                        <div>
+                          <h6 className="fw-bold mb-0 text-dark">{sub.nombre}</h6>
+                          <small className="text-muted">Subdirección DIDECO</small>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-grow-1">
-                    <span className="badge bg-light text-dark border small fw-normal mb-1">
-                      {func.departamento || 'Programa DIDECO'}
-                    </span>
-                    <h6 className="fw-bold text-dark mb-0">{func.nombre}</h6>
-                    <small className="text-muted d-block mb-3">{func.cargo || 'Funcionario Municipal'}</small>
+                ))}
+              </div>
+            </div>
 
-                    <div className="d-flex align-items-center justify-content-between pt-2 border-top">
-                      <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small">
-                        <i className="bi bi-check-circle-fill me-1"></i> Activo
-                      </span>
+            {/* CAPA 2: DEPARTAMENTOS */}
+            <div className="card border-0 shadow-sm rounded-4 p-3 mb-4">
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <span className="text-uppercase fw-bold small text-muted">
+                  <i className="bi bi-funnel-fill me-2 text-warning"></i>2. Filtrar por Departamento / Programa
+                </span>
+                <span className="badge bg-light text-dark border">{deptosFiltrados.length} Disponibles</span>
+              </div>
+              
+              <div className="d-flex flex-wrap gap-2">
+                <button
+                  className={`btn btn-sm rounded-pill px-3 fw-semibold ${
+                    selectedDepto === null ? 'btn-warning text-dark' : 'btn-outline-secondary'
+                  }`}
+                  onClick={() => setSelectedDepto(null)}
+                >
+                  Todos los Departamentos
+                </button>
+                
+                {deptosFiltrados.map(dep => (
+                  <button
+                    key={dep.id}
+                    className={`btn btn-sm rounded-pill px-3 fw-semibold ${
+                      selectedDepto === dep.id ? 'btn-warning text-dark' : 'btn-outline-secondary'
+                    }`}
+                    onClick={() => setSelectedDepto(selectedDepto === dep.id ? null : dep.id)}
+                  >
+                    {dep.nombre}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CAPA 3: FUNCIONARIOS */}
+            <div className="row g-3">
+              {funcionariosFiltrados.map(func => (
+                <div key={func.id} className="col-12 col-sm-6 col-lg-4 col-xl-3">      
+                  <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-top border-4 border-success position-relative overflow-hidden">
+                    
+                    {/* BOTONES ACCION EDITAR / ELIMINAR */}
+                    <div className="position-absolute top-0 end-0 p-2 d-flex gap-1 z-1">
                       <button 
-                        className="btn btn-sm btn-outline-success rounded-2 fw-semibold px-3"
-                        onClick={() => setFuncionarioModal(func)}
+                        className="btn btn-sm btn-light text-primary border-0 p-1"
+                        title="Editar Funcionario"
+                        onClick={() => abrirFormulario(func)}
                       >
-                        <i className="bi bi-calendar-week me-1"></i> Ver Agenda
+                        <i className="bi bi-pencil-fill"></i>
+                      </button>
+                      <button 
+                        className="btn btn-sm btn-light text-danger border-0 p-1"
+                        title="Eliminar Funcionario"
+                        onClick={() => handleEliminar(func.id)}
+                      >
+                        <i className="bi bi-trash-fill"></i>
                       </button>
                     </div>
+
+                    <div className="d-flex align-items-start gap-3 mt-2">
+                      <div className="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '42px', height: '42px', fontSize: '0.9rem' }}>
+                        {func.nombre ? func.nombre.substring(0, 2).toUpperCase() : 'FC'}
+                      </div>
+                      <div className="flex-grow-1 min-w-0" style={{ minWidth: 0 }}>
+                        <span 
+                          className="badge bg-light text-dark border small fw-normal mb-1 text-truncate d-inline-block" 
+                          style={{ maxWidth: '85%' }}
+                          title={func.departamento || 'Programa DIDECO'}
+                        >
+                          {func.departamento || 'Programa DIDECO'}
+                        </span>
+                        <h6 className="fw-bold text-dark mb-0 text-truncate">{func.nombre}</h6>
+                        <small className="text-muted d-block mb-3 text-truncate">{func.cargo || 'Funcionario Municipal'}</small>
+
+                        <div className="d-flex flex-wrap align-items-center justify-content-between pt-2 border-top gap-2">
+                          <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill small">
+                            <i className="bi bi-check-circle-fill me-1"></i> Activo
+                          </span>
+                          <button 
+                            className="btn btn-sm btn-outline-success rounded-2 fw-semibold px-2 py-1 small"
+                            onClick={() => setFuncionarioModal(func)}
+                          >
+                            <i className="bi bi-calendar-week me-1"></i> Ver Agenda
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        ) : (
+          /* VISTA DE AGENDAS GLOBALES */
+          <div className="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-4">
+            <i className="bi bi-calendar-event text-success fs-1 mb-3"></i>
+            <h4 className="fw-bold text-dark">Módulo de Agendas Globales</h4>
+            <p className="text-muted col-md-6 mx-auto">
+              Selecciona cualquier funcionario desde el panel principal para desplegar y auditar sus tareas, horarios y evidencias en terreno.
+            </p>
+            <button 
+              className="btn btn-success rounded-pill px-4 align-self-center mt-2 fw-bold"
+              onClick={() => setVistaActual('dashboard')}
+            >
+              Volver al Panel Principal
+            </button>
+          </div>
+        )}
 
       </div>
 

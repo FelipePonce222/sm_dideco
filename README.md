@@ -53,6 +53,7 @@ Un dashboard ejecutivo moderno e interactivo diseñado para la gestión, control
         ├── App.jsx           # Componente principal y CRUD de funcionarios
         ├── main.jsx          # Punto de entrada de React
         └── index.css         # Personalización de estilos y variables CSS
+---
 
 ## **⚡ Instalación de backend Flask**
 
