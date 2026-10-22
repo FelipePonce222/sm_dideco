@@ -14,6 +14,17 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [funcionarioModal, setFuncionarioModal] = useState(null)
 
+  // ESTADO PARA CREAR/EDITAR FUNCIONARIO
+  const [modalFormOpen, setModalFormOpen] = useState(false)
+  const [funcionarioEdit, setFuncionarioEdit] = useState(null)
+  const [formData, setFormData] = useState({
+    nombre: '',
+    cargo: '',
+    tipo_contrato: 'Contrata',
+    subdireccion_id: '',
+    departamento_id: ''
+  })
+
   useEffect(() => {
     cargarSubdirecciones()
     cargarDepartamentos()
@@ -47,8 +58,73 @@ export default function App() {
     }
   }
 
+  // ABRIR FORMULARIO PARA NUEVO O EDITAR
+  const abrirFormulario = (func = null) => {
+    if (func) {
+      setFuncionarioEdit(func)
+      setFormData({
+        nombre: func.nombre || '',
+        cargo: func.cargo || '',
+        tipo_contrato: func.tipo_contrato || 'Contrata',
+        subdireccion_id: func.subdireccion_id || '',
+        departamento_id: func.departamento_id || ''
+      })
+    } else {
+      setFuncionarioEdit(null)
+      setFormData({
+        nombre: '',
+        cargo: '',
+        tipo_contrato: 'Contrata',
+        subdireccion_id: subdirecciones[0]?.id || '',
+        departamento_id: departamentos[0]?.id || ''
+      })
+    }
+    setModalFormOpen(true)
+  }
+
+  // GUARDAR EN LA BD
+  const handleGuardarFuncionario = async (e) => {
+    e.preventDefault()
+    try {
+      const payload = {
+        ...formData,
+        subdireccion_id: Number(formData.subdireccion_id),
+        departamento_id: Number(formData.departamento_id)
+      }
+
+      if (funcionarioEdit && funcionarioEdit.id) {
+        await axios.put(`${API_BASE_URL}/funcionarios/${funcionarioEdit.id}`, payload)
+      } else {
+        await axios.post(`${API_BASE_URL}/funcionarios`, payload)
+      }
+
+      setModalFormOpen(false)
+      cargarFuncionarios()
+      alert('¡Funcionario guardado con éxito! 🎉')
+    } catch (err) {
+      console.error('Error al guardar funcionario:', err)
+      alert('Ocurrió un error al guardar. Revisa la consola o que el servidor Flask esté activo.')
+    }
+  }
+
+  // ELIMINAR FUNCIONARIO
+  const handleEliminar = async (id) => {
+    if (window.confirm('¿Estás seguro de eliminar a este funcionario?')) {
+      try {
+        await axios.delete(`${API_BASE_URL}/funcionarios/${id}`)
+        cargarFuncionarios()
+      } catch (err) {
+        console.error('Error al eliminar:', err)
+      }
+    }
+  }
+
   const deptosFiltrados = selectedSub
     ? departamentos.filter(d => d.subdireccion_id === selectedSub)
+    : departamentos
+
+  const deptosFormulario = formData.subdireccion_id
+    ? departamentos.filter(d => d.subdireccion_id === Number(formData.subdireccion_id))
     : departamentos
 
   const funcionariosFiltrados = funcionarios.filter(f => {
@@ -63,7 +139,7 @@ export default function App() {
     <div className="bg-light min-vh-100">
       
       {/* NAVBAR INSTITUCIONAL */}
-      <nav className="navbar navbar-expand-lg navbar-dark shadow-sm py-2" style={{ backgroundColor: '#3d9735' }}>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-success shadow-sm py-2">
         <div className="container-fluid px-4 d-flex align-items-center justify-content-between">
           <a className="navbar-brand fw-bold d-flex align-items-center gap-3" href="#">
             <img 
@@ -74,14 +150,20 @@ export default function App() {
               onError={(e) => { e.target.style.display = 'none' }} // Oculta si no existe la imagen en public/
             />
             <div className="d-flex flex-column">
-              <span className="small text-black-80 fw-light"> | Sistema de Monitoreo Operativo</span>
+              <span className="small text-white-90 fw-light"> | Sistema de Monitoreo Operativo</span>
             </div>
           </a>
 
           <div className="d-flex align-items-center gap-3">
-            <span className="badge bg-success rounded-pill px-3 py-2 shadow-sm fs-6">
+            <button 
+              className="btn btn-success rounded-pill px-3 shadow-sm fw-bold"
+              onClick={() => abrirFormulario()}
+            >
+              <i className="bi bi-person-plus-fill me-2"></i> + Nuevo Funcionario
+            </button>
+            <span className="badge bg-secondary rounded-pill px-3 py-2 shadow-sm fs-6">
               <i className="bi bi-people-fill me-2"></i>
-              {funcionariosFiltrados.length} Funcionarios Visibles
+              {funcionariosFiltrados.length} Visibles
             </span>
           </div>
         </div>
@@ -94,7 +176,7 @@ export default function App() {
           <div className="card-body p-4 bg-white rounded-4">
             <div className="row align-items-center g-3">
               <div className="col-lg-7">
-                <span className="badge bg-success px-3 py-1 mb-2" >Organigrama Interactivo DIDECO</span>
+                <span className="badge bg-success px-3 py-1 mb-2">Organigrama Interactivo DIDECO</span>
                 <h1 className="h3 fw-bold text-dark mb-1">Panel de Monitoreo Operativo</h1>
                 <p className="text-muted small mb-0">Supervisión diaria de agendas y evidencias fotográficas por funcionario.</p>
               </div>
@@ -132,7 +214,7 @@ export default function App() {
               <div key={sub.id} className="col-12 col-sm-6 col-lg-3">
                 <div
                   className={`card border-0 shadow-sm rounded-3 p-3 h-100 transition-all ${
-                    selectedSub === sub.id ? 'border border-2 border-primary bg-primary-subtle' : 'bg-white'
+                    selectedSub === sub.id ? 'border border-2 border-success bg-success-subtle' : 'bg-white'
                   }`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
@@ -142,7 +224,7 @@ export default function App() {
                 >
                   <div className="d-flex align-items-center gap-3">
                     <div className="p-3 rounded-3 text-white bg-success">
-                      <i className="bi bi-people-fill fs-4"></i>
+                      <i className="bi bi-people-fill fs-4"></i>              {/* BOTON VERDE DE SUBDIRECCIONES */}
                     </div>
                     <div>
                       <h6 className="fw-bold mb-0 text-dark">{sub.nombre}</h6>
@@ -192,8 +274,27 @@ export default function App() {
         <div className="row g-3">
           {funcionariosFiltrados.map(func => (
             <div key={func.id} className="col-12 col-sm-6 col-md-4 col-xl-3">      
-              <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-top border-4 border-success">
-                <div className="d-flex align-items-start gap-3">
+              <div className="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-top border-4 border-success position-relative">
+                
+                {/* BOTONES ACCION EDITAR / ELIMINAR */}
+                <div className="position-absolute top-0 end-0 p-2 d-flex gap-1">
+                  <button 
+                    className="btn btn-sm btn-light text-primary border-0 p-1"
+                    title="Editar Funcionario"
+                    onClick={() => abrirFormulario(func)}
+                  >
+                    <i className="bi bi-pencil-fill"></i>
+                  </button>
+                  <button 
+                    className="btn btn-sm btn-light text-danger border-0 p-1"
+                    title="Eliminar Funcionario"
+                    onClick={() => handleEliminar(func.id)}
+                  >
+                    <i className="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+
+                <div className="d-flex align-items-start gap-3 mt-2">
                   <div className="rounded-circle bg-success text-white fw-bold d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px' }}>
                     {func.nombre ? func.nombre.substring(0, 2).toUpperCase() : 'FC'}
                   </div>
@@ -223,6 +324,107 @@ export default function App() {
         </div>
 
       </div>
+
+      {/* MODAL PARA AGREGAR / EDITAR FUNCIONARIO */}
+      {modalFormOpen && (
+        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg rounded-4">
+              <div className="modal-header bg-dark text-white rounded-top-4">
+                <h5 className="modal-title fw-bold">
+                  <i className="bi bi-person-fill-gear me-2"></i>
+                  {funcionarioEdit ? 'Editar Funcionario' : 'Nuevo Funcionario'}
+                </h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setModalFormOpen(false)}></button>
+              </div>
+              
+              <form onSubmit={handleGuardarFuncionario}>
+                <div className="modal-body p-4">
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold text-dark">Nombre Completo</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      required
+                      placeholder="Ej: Juan Pérez"
+                      value={formData.nombre}
+                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold text-dark">Cargo / Función</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      required
+                      placeholder="Ej: Coordinador de Terreno"
+                      value={formData.cargo}
+                      onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold text-dark">Tipo de Contrato</label>
+                    <select
+                      className="form-select"
+                      value={formData.tipo_contrato}
+                      onChange={(e) => setFormData({ ...formData, tipo_contrato: e.target.value })}
+                    >
+                      <option value="Planta">Planta</option>
+                      <option value="Contrata">Contrata</option>
+                      <option value="Honorario">Honorario</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold text-dark">Subdirección</label>
+                    <select
+                      className="form-select"
+                      required
+                      value={formData.subdireccion_id}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        subdireccion_id: e.target.value,
+                        departamento_id: '' 
+                      })}
+                    >
+                      <option value="">-- Seleccionar Subdirección --</option>
+                      {subdirecciones.map(sub => (
+                        <option key={sub.id} value={sub.id}>{sub.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold text-dark">Departamento / Programa</label>
+                    <select
+                      className="form-select"
+                      required
+                      value={formData.departamento_id}
+                      onChange={(e) => setFormData({ ...formData, departamento_id: e.target.value })}
+                    >
+                      <option value="">-- Seleccionar Departamento --</option>
+                      {deptosFormulario.map(dep => (
+                        <option key={dep.id} value={dep.id}>{dep.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="modal-footer bg-light rounded-bottom-4">
+                  <button type="button" className="btn btn-outline-secondary rounded-pill px-4" onClick={() => setModalFormOpen(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-success rounded-pill px-4 fw-bold">
+                    <i className="bi bi-floppy-fill me-2"></i> Guardar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL DE AGENDA */}
       {funcionarioModal && (

@@ -1,75 +1,136 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
-# Permitir que React (localhost:5173) se conecte sin bloqueos de CORS
+
+# Configuración básica de CORS
 CORS(app)
 
-DATABASE = 'dideco.db'  # Nombre de tu base de datos SQLite
-
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row  # Para retornar los datos como diccionarios/JSON
+    conn = sqlite3.connect('dideco.db')
+    conn.row_factory = sqlite3.Row
     return conn
 
-# 1. API Subdirecciones (Capa Azul)
+# MANEJADOR GLOBAL PARA EVITAR ERRORES DE CORS Y PREFLIGHT (OPTIONS)
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+        return response, 200
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,PUT,POST,DELETE,OPTIONS"
+    return response
+
+# API: Obtener subdirecciones
 @app.route('/api/subdirecciones', methods=['GET'])
 def get_subdirecciones():
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM subdirecciones")
-    rows = cursor.fetchall()
+    subs = conn.execute('SELECT * FROM subdirecciones').fetchall()
     conn.close()
-    return jsonify([dict(row) for row in rows])
+    return jsonify([dict(row) for row in subs])
 
-# 2. API Departamentos (Capa Amarilla)
+# API: Obtener departamentos
 @app.route('/api/departamentos', methods=['GET'])
 def get_departamentos():
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM departamentos")
-    rows = cursor.fetchall()
+    deps = conn.execute('SELECT * FROM departamentos').fetchall()
     conn.close()
-    return jsonify([dict(row) for row in rows])
+    return jsonify([dict(row) for row in deps])
 
-# 3. API Funcionarios (Capa Verde)
+# API: Obtener funcionarios
 @app.route('/api/funcionarios', methods=['GET'])
 def get_funcionarios():
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT f.id, f.nombre, f.cargo, f.subdireccion_id, f.departamento_id,
-               d.nombre as departamento, s.nombre as subdireccion
+    query = '''
+        SELECT f.id, f.nombre, f.cargo, f.tipo_contrato, 
+               f.subdireccion_id, f.departamento_id,
+               s.nombre as subdireccion, d.nombre as departamento
         FROM funcionarios f
-        LEFT JOIN departamentos d ON f.departamento_id = d.id
         LEFT JOIN subdirecciones s ON f.subdireccion_id = s.id
-    """)
-    rows = cursor.fetchall()
+        LEFT JOIN departamentos d ON f.departamento_id = d.id
+    '''
+    funcs = conn.execute(query).fetchall()
     conn.close()
-    return jsonify([dict(row) for row in rows])
+    return jsonify([dict(row) for row in funcs])
 
-# 4. API Actividades por Funcionario y Fecha (Modal Agenda)
-@app.route('/api/actividades', methods=['GET'])
-def get_actividades():
-    funcionario_id = request.args.get('funcionario_id')
-    fecha = request.args.get('fecha')
+# API: Crear un nuevo funcionario
+@app.route('/api/funcionarios', methods=['POST', 'OPTIONS'])
+def agregar_funcionario():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    try:
+        datos = request.json or {}
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO funcionarios (nombre, cargo, tipo_contrato, subdireccion_id, departamento_id)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            datos.get('nombre'),
+            datos.get('cargo'),
+            datos.get('tipo_contrato', 'Contrata'),
+            int(datos.get('subdireccion_id')) if datos.get('subdireccion_id') else None,
+            int(datos.get('departamento_id')) if datos.get('departamento_id') else None
+        ))
+        conn.commit()
+        nuevo_id = cursor.lastrowid
+        conn.close()
+        return jsonify({"mensaje": "Funcionario creado con éxito", "id": nuevo_id}), 201
+    except Exception as e:
+        print("Error en POST:", e)
+        return jsonify({"error": str(e)}), 500
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+# API: Actualizar un funcionario
+@app.route('/api/funcionarios/<int:id>', methods=['PUT', 'OPTIONS'])
+def editar_funcionario(id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    try:
+        datos = request.json or {}
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE funcionarios
+            SET nombre = ?, cargo = ?, tipo_contrato = ?, subdireccion_id = ?, departamento_id = ?
+            WHERE id = ?
+        ''', (
+            datos.get('nombre'),
+            datos.get('cargo'),
+            datos.get('tipo_contrato'),
+            int(datos.get('subdireccion_id')) if datos.get('subdireccion_id') else None,
+            int(datos.get('departamento_id')) if datos.get('departamento_id') else None,
+            id
+        ))
+        conn.commit()
+        conn.close()
+        return jsonify({"mensaje": "Funcionario actualizado correctamente"}), 200
+    except Exception as e:
+        print("Error en PUT:", e)
+        return jsonify({"error": str(e)}), 500
 
-    query = "SELECT * FROM actividades WHERE funcionario_id = ?"
-    params = [funcionario_id]
-
-    if fecha:
-        query += " AND fecha = ?"
-        params.append(fecha)
-
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in rows])
+# API: Eliminar un funcionario
+@app.route('/api/funcionarios/<int:id>', methods=['DELETE', 'OPTIONS'])
+def eliminar_funcionario(id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM funcionarios WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"mensaje": "Funcionario eliminado correctamente"}), 200
+    except Exception as e:
+        print("Error en DELETE:", e)
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Ejecutar en el puerto 5000
     app.run(debug=True, port=5000)
