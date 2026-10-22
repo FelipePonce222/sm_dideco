@@ -54,7 +54,7 @@ Un dashboard ejecutivo moderno e interactivo diseñado para la gestión, control
         ├── main.jsx          # Punto de entrada de React
         └── index.css         # Personalización de estilos y variables CSS
 
-##⚡ Instalación de backend Flask
+## **⚡ Instalación de backend Flask**
 
 # Navegar a la carpeta del backend
 cd backend

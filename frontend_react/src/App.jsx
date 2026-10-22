@@ -1,10 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import AgendaModal from './components/AgendaModal'
+import Login from './components/Login'
 
 const API_BASE_URL = 'http://127.0.0.1:5000/api'
 
 export default function App() {
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('userData')
+    return saved ? JSON.parse(saved) : null
+  })
+
+  const handleLogout = () => {
+    localStorage.removeItem('userToken')
+    localStorage.removeItem('userData')
+    setUser(null)
+  }
+
   const [subdirecciones, setSubdirecciones] = useState([])
   const [departamentos, setDepartamentos] = useState([])
   const [funcionarios, setFuncionarios] = useState([])
@@ -26,10 +38,12 @@ export default function App() {
   })
 
   useEffect(() => {
-    cargarSubdirecciones()
-    cargarDepartamentos()
-    cargarFuncionarios()
-  }, [])
+    if (user) {
+      cargarSubdirecciones()
+      cargarDepartamentos()
+      cargarFuncionarios()
+    }
+  }, [user])
 
   const cargarSubdirecciones = async () => {
     try {
@@ -119,6 +133,11 @@ export default function App() {
     }
   }
 
+  // MOSTRAR PANTALLA DE LOGIN SI NO HAY USUARIO
+  if (!user) {
+    return <Login onLoginSuccess={(usuario) => setUser(usuario)} />
+  }
+
   const deptosFiltrados = selectedSub
     ? departamentos.filter(d => d.subdireccion_id === selectedSub)
     : departamentos
@@ -147,7 +166,7 @@ export default function App() {
               alt="Logo Municipalidad" 
               height="42" 
               className="d-inline-block align-text-top rounded"
-              onError={(e) => { e.target.style.display = 'none' }} // Oculta si no existe la imagen en public/
+              onError={(e) => { e.target.style.display = 'none' }}
             />
             <div className="d-flex flex-column">
               <span className="small text-white-90 fw-light"> | Sistema de Monitoreo Operativo</span>
@@ -156,7 +175,7 @@ export default function App() {
 
           <div className="d-flex align-items-center gap-3">
             <button 
-              className="btn btn-success rounded-pill px-3 shadow-sm fw-bold"
+              className="btn btn-success rounded-pill px-3 shadow-sm fw-bold border border-white"
               onClick={() => abrirFormulario()}
             >
               <i className="bi bi-person-plus-fill me-2"></i> + Nuevo Funcionario
@@ -165,6 +184,13 @@ export default function App() {
               <i className="bi bi-people-fill me-2"></i>
               {funcionariosFiltrados.length} Visibles
             </span>
+            <button 
+              className="btn btn-outline-light rounded-pill px-3 fw-semibold"
+              onClick={handleLogout}
+              title="Cerrar Sesión"
+            >
+              <i className="bi bi-box-arrow-right me-1"></i> Salir
+            </button>
           </div>
         </div>
       </nav>
@@ -224,7 +250,7 @@ export default function App() {
                 >
                   <div className="d-flex align-items-center gap-3">
                     <div className="p-3 rounded-3 text-white bg-success">
-                      <i className="bi bi-people-fill fs-4"></i>              {/* BOTON VERDE DE SUBDIRECCIONES */}
+                      <i className="bi bi-people-fill fs-4"></i>
                     </div>
                     <div>
                       <h6 className="fw-bold mb-0 text-dark">{sub.nombre}</h6>

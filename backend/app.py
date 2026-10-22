@@ -7,6 +7,35 @@ app = Flask(__name__)
 # Configuración básica de CORS
 CORS(app)
 
+# 1. DEFINICIÓN DE LA CONEXIÓN A LA BASE DE DATOS
+def get_db_connection():
+    conn = sqlite3.connect('dideco.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# 2. INICIALIZACIÓN DE LA TABLA DE USUARIOS
+def init_db_usuarios():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            nombre TEXT NOT NULL,
+            rol TEXT DEFAULT 'admin'
+        )
+    ''')
+    cursor.execute('SELECT COUNT(*) FROM usuarios')
+    if cursor.fetchone()[0] == 0:
+        cursor.execute('''
+            INSERT INTO usuarios (usuario, password, nombre, rol)
+            VALUES (?, ?, ?, ?)
+        ''', ('admin', 'dideco2026', 'Administrador DIDECO', 'admin'))
+        conn.commit()
+    conn.close()
+init_db_usuarios()
+
 def get_db_connection():
     conn = sqlite3.connect('dideco.db')
     conn.row_factory = sqlite3.Row
@@ -219,5 +248,37 @@ def eliminar_actividad(id):
         print("Error en DELETE /api/actividades:", e)
         return jsonify({"error": str(e)}), 500
 
+# API: Autenticación de usuarios / Login REACT
+@app.route('/api/login', methods=['POST', 'OPTIONS'])
+def login():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+    
+    datos = request.json or {}
+    usuario_input = datos.get('usuario')
+    password_input = datos.get('password')
+
+    conn = get_db_connection()
+    user = conn.execute(
+        'SELECT * FROM usuarios WHERE usuario = ? AND password = ?',
+        (usuario_input, password_input)
+    ).fetchone()
+    conn.close()
+
+    if user:
+        return jsonify({
+            "mensaje": "Inicio de sesión exitoso",
+            "token": f"token-dideco-{user['id']}",
+            "usuario": {
+                "id": user['id'],
+                "nombre": user['nombre'],
+                "usuario": user['usuario'],
+                "rol": user['rol']
+            }
+        }), 200
+    else:
+        return jsonify({"error": "Usuario o contraseña incorrectos"}), 401
+
+    s
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
