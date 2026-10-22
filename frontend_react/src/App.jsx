@@ -193,7 +193,7 @@ export default function App() {
               className="btn btn-success rounded-pill px-3 shadow-sm fw-bold border border-white"
               onClick={() => abrirFormulario()}
             >
-              <i className="bi bi-person-plus-fill me-2"></i> + Nuevo Funcionario
+              <i className="bi bi-person-plus-fill me-2"></i> Nuevo Funcionario
             </button>
             <span className="badge bg-secondary rounded-pill px-3 py-2 shadow-sm fs-6">
               <i className="bi bi-people-fill me-2"></i>
